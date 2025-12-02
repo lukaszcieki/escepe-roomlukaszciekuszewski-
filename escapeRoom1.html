@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Escape Room JS – Fabularny</title>
+    <style>
+      body {
+        font-family: "Courier New", monospace;
+        background-color: #0b0b0b;
+        color: #eee;
+	max-width: 900px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        color: #0ff;
+      }
+      .task {
+        border: 2px solid #444;
+        padding: 15px;
+        margin: 15px 0;
+        background-color: #1a1a1a;
+      }
+      .task.locked {
+        display: none;
+      }
+      textarea {
+        width: 100%;
+        min-height: 150px;
+        padding: 10px;
+        margin-top: 10px;
+        background-color: #0b0b0b;
+        color: #0ff;
+        border: 1px solid #444;
+        font-family: "Courier New", monospace;
+        font-size: 14px;
+        resize: vertical;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin-top: 10px;
+      }
+      button {
+        background-color: #0ff;
+        color: #000;
+        border: none;
+        cursor: pointer;
+        font-weight: bold;
+        padding: 10px 20px;
+      }
+      button:hover {
+        background-color: #0cc;
+      }
+      .hint {
+        color: #ff0;
+        margin-top: 10px;
+        display: none;
+      }
+      .instructions {
+        background-color: #1a3a1a;
+        border: 2px solid #0f0;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 5px;
+      }
+      .instructions h2 {
+        color: #0f0;
+        margin-top: 0;
+        font-size: 18px;
+      }
+      .instructions ul {
+        margin: 10px 0;
+        padding-left: 25px;
+      }
+      .instructions li {
+        margin: 5px 0;
+        color: #eee;
+      }
+      .instructions code {
+        color: #0ff;
+        background-color: #0b0b0b;
+        padding: 2px 5px;
+        border-radius: 3px;
+      }
+      .success {
+        color: #0f0;
+        font-weight: bold;
+      }
+      .fail {
+        color: #f33;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Escape Room – Misja Informatyka</h1>
+    <div class="instructions">
+      <h2>📋 Instrukcje wprowadzania kodu:</h2>
+      <ul>
+        <li>Wpisz kod JavaScript, który oblicza i zwraca wynik</li>
+        <li>
+          Możesz użyć deklaracji zmiennych (<code>let</code>,
+          <code>const</code>)
+        </li>
+        <li>
+          Ostatnia linia powinna być wyrażeniem zwracającym wynik (bez średnika)
+          lub użyj <code>return</code>
+        </li>
+        <li>
+          Przykład poprawnego kodu:<br />
+          <code style="display: block; margin-top: 5px; padding: 10px">
+            let a = 5;<br />
+            let b = 3;<br />
+            a * b + 2
+          </code>
+        </li>
+        <li>Zmienne z poprzednich zadań są dostępne automatycznie</li>
+      </ul>
+    </div>
+    <div id="tasks"></div>
+
+    <script>
+      const tasks = [
+        {
+          question:
+            "1. Budzisz się w ciemnym pokoju. Na ścianie widzisz tajemnicze liczby: 6 i 3. Musisz je pomnożyć przez siebie, a następnie dodać 2. Jaki jest wynik tego obliczenia?",
+          answer: "20",
+          hint: "Przykładowy kod: let a = 5; let b = 4; a * b + 1",
+        },
+        {
+          question:
+            "2. Drzwi się uchylają, ale pojawia się strażnik. Pyta: czy poprzedni wynik powiększony o 5 przekracza 22? Odpowiedz true lub false.",
+          answer: "true",
+          hint: "Przykładowy kod: let wynik = 15; wynik + 3 > 18",
+        },
+        {
+          question:
+            "3. Strażnik pyta o hasło. Jeśli poprzednia odpowiedź była true, hasło to 'otwarte', w przeciwnym razie 'zamknięte'. Jaka jest wartość hasła?",
+          answer: "otwarte",
+          hint: "Przykładowy kod: let odpowiedz = true; let haslo; if (odpowiedz) { haslo = 'tak'; } else { haslo = 'nie'; }",
+        },
+        {
+          question:
+            "4. W kolejnym pokoju znajduje się skrzynia. Aby ją otworzyć, musisz pomnożyć poprzedni wynik (20) przez 2, a następnie odjąć 12. Jaki jest wynik?",
+          answer: "28",
+          hint: "Przykładowy kod: let x = 15; x * 2 - 2",
+        },
+        {
+          question:
+            "5. Skrzynia się otwiera, ale w środku jest pułapka. Sprawdź czy wartość klucza jest liczbą parzystą. Odpowiedz true lub false.",
+          answer: "true",
+          hint: "Przykładowy kod: let liczba = 10; liczba % 2 === 0",
+        },
+        {
+          question:
+            "6. Pułapka zadaje pytanie: jeśli klucz jest mniejszy niż 30, odpowiedź to 'bezpiecznie'. W przeciwnym razie 'niebezpieczeństwo'. Jaka jest odpowiedź?",
+          answer: "bezpiecznie",
+          hint: "Przykładowy kod: let x = 15; let wynik; if (x < 20) { wynik = 'malo'; } else { wynik = 'duzo'; }",
+        },
+        {
+          question:
+            "7. Widzisz sejf. Aby go otworzyć, musisz dodać wartość klucza do liczby 3. Jaki jest wynik tego dodawania?",
+          answer: "31",
+          hint: "Przykładowy kod: let a = 10; let b = 5; a + b",
+        },
+        {
+          question:
+            "8. Sejf zawiera ostatnie drzwi. Sprawdź resztę z dzielenia kodu przez 2. Jeśli reszta wynosi 1, odpowiedź to 'wyjście', w przeciwnym razie 'pułapka'. Jaka jest odpowiedź?",
+          answer: "wyjście",
+          hint: "Przykładowy kod: let x = 7; let wynik; if (x % 2 === 1) { wynik = 'nieparzyste'; } else { wynik = 'parzyste'; }",
+        },
+      ];
+
+      const container = document.getElementById("tasks");
+
+      tasks.forEach((task, index) => {
+        const div = document.createElement("div");
+        div.className = "task locked";
+        div.innerHTML = `
+        <p>${task.question}</p>
+        <textarea id="input${index}" placeholder="Wpisz kod JavaScript tutaj...&#10;Przykład:&#10;let a = 5;&#10;let b = 3;&#10;a * b + 2"></textarea>
+        <button onclick="checkAnswer(${index})">Sprawdź kod</button>
+        <p id="result${index}"></p>
+        <p class="hint" id="hint${index}">💡 Podpowiedź - przykładowy kod podobny do rozwiązania:<br><code style="color: #0ff; background-color: #0b0b0b; padding: 5px; display: block; margin-top: 5px;">${task.hint}</code></p>
+      `;
+        container.appendChild(div);
+      });
+
+      let attempts = Array(tasks.length).fill(0);
+      // Wspólny zakres zmiennych dla wszystkich zadań
+      const sharedScope = {};
+
+      function checkAnswer(i) {
+        const codeInput = document.getElementById("input" + i).value.trim();
+        const result = document.getElementById("result" + i);
+
+        if (!codeInput) {
+          result.textContent = "❌ Wprowadź kod JavaScript.";
+          result.className = "fail";
+          return;
+        }
+
+        try {
+          // Wykonaj kod użytkownika z dostępem do zmiennych z poprzednich zadań
+          const userCode = codeInput;
+          let executionResult;
+
+          // Znajdź zmienne zadeklarowane w kodzie użytkownika, aby uniknąć konfliktów
+          const userDeclaredVars = new Set();
+          const varDeclPattern = /(?:let|const|var)\s+(\w+)/g;
+          let match;
+          while ((match = varDeclPattern.exec(userCode)) !== null) {
+            userDeclaredVars.add(match[1]);
+          }
+
+          // Przygotuj kod z dostępem do zmiennych z poprzednich zadań
+          // Używamy var zamiast let, aby uniknąć błędów redeklaracji
+          // Pomijamy zmienne, które użytkownik już zadeklarował w swoim kodzie
+          const setupCode = Object.keys(sharedScope)
+            .filter((key) => !userDeclaredVars.has(key))
+            .map((key) => {
+              const value = sharedScope[key];
+              // Obsługa różnych typów wartości
+              if (typeof value === "string") {
+                return `var ${key} = ${JSON.stringify(value)};`;
+              } else if (
+                typeof value === "number" ||
+                typeof value === "boolean"
+              ) {
+                return `var ${key} = ${value};`;
+              } else {
+                return `var ${key} = ${JSON.stringify(value)};`;
+              }
+            })
+            .join("\n");
+
+          // Sprawdzamy czy kod zawiera return
+          if (userCode.includes("return")) {
+            // Jeśli zawiera return, wykonujemy jako funkcję
+            const func = new Function(setupCode + "\n" + userCode);
+            executionResult = func();
+          } else {
+            // W przeciwnym razie wykonujemy kod i próbujemy zwrócić ostatnią wartość
+            const lines = userCode
+              .split("\n")
+              .map((line) => line.trim())
+              .filter((line) => line);
+
+            if (lines.length === 0) {
+              throw new Error("Kod jest pusty.");
+            }
+
+            const lastLine = lines[lines.length - 1];
+            const isLastLineExpression =
+              !lastLine.includes("=") && !lastLine.endsWith(";");
+
+            if (isLastLineExpression) {
+              // Ostatnia linia to wyrażenie - wykonujemy kod przed nią i zwracamy wynik wyrażenia
+              const codeBeforeLast = lines.slice(0, -1).join("\n");
+              const fullCode =
+                setupCode + "\n" + codeBeforeLast + "\n" + "return " + lastLine;
+              executionResult = new Function(fullCode)();
+            } else {
+              // Kod kończy się średnikiem lub przypisaniem
+              // Wykonujemy kod i próbujemy znaleźć wynik
+              if (lastLine.includes("=")) {
+                // Ostatnia linia to przypisanie - wykonujemy kod i zwracamy przypisaną wartość
+                const varName = lastLine
+                  .split("=")[0]
+                  .trim()
+                  .replace(/let|const|var/g, "")
+                  .trim();
+                const fullCode =
+                  setupCode + "\n" + userCode + "\n" + `return ${varName};`;
+                executionResult = new Function(fullCode)();
+
+                // Zapisz zmienną do wspólnego zakresu
+                sharedScope[varName] = executionResult;
+              } else {
+                throw new Error(
+                  "Kod powinien zwracać wartość. Użyj wyrażenia jako ostatniej linii (bez średnika) lub 'return'."
+                );
+              }
+            }
+          }
+
+          // Zapisz zmienne zadeklarowane w kodzie do wspólnego zakresu
+          const varPattern = /(?:let|const|var)\s+(\w+)\s*=\s*([^;]+)/g;
+          let varMatch;
+          while ((varMatch = varPattern.exec(userCode)) !== null) {
+            try {
+              const varName = varMatch[1];
+              const varExpression = varMatch[2].trim();
+              // Wykonaj wyrażenie przypisania w kontekście z dostępem do zmiennych
+              const getValue = new Function(
+                setupCode + "\n" + `return ${varExpression};`
+              );
+              sharedScope[varName] = getValue();
+            } catch (e) {
+              // Ignoruj błędy przy zapisywaniu zmiennych
+            }
+          }
+
+          // Konwertuj wynik na string dla porównania
+          const resultString = String(executionResult);
+          const expectedAnswer = String(tasks[i].answer);
+
+          // Sprawdź czy wynik pasuje do oczekiwanej odpowiedzi
+          if (resultString === expectedAnswer) {
+            result.textContent =
+              "✅ Poprawna odpowiedź! Kod działa prawidłowo.";
+            result.className = "success";
+            document.querySelectorAll(".task")[i].classList.remove("locked");
+            if (i + 1 < tasks.length) {
+              document
+                .querySelectorAll(".task")
+                [i + 1].classList.remove("locked");
+            } else {
+              alert("Gratulacje! Uciekłeś z Escape Roomu 🎉");
+            }
+          } else {
+            attempts[i]++;
+            result.textContent = `❌ Niepoprawny wynik. Otrzymano: ${resultString}, oczekiwano: ${expectedAnswer}`;
+            result.className = "fail";
+            if (attempts[i] >= 3) {
+              document.getElementById("hint" + i).style.display = "block";
+            }
+          }
+        } catch (error) {
+          attempts[i]++;
+          result.textContent = `❌ Błąd w kodzie: ${error.message}`;
+          result.className = "fail";
+          if (attempts[i] >= 3) {
+            document.getElementById("hint" + i).style.display = "block";
+          }
+        }
+      }
+
+      // Odblokuj pierwsze zadanie na start
+      document.querySelectorAll(".task")[0].classList.remove("locked");
+    </script>
+  </body>
+</html>
